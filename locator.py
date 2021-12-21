@@ -1,257 +1,288 @@
 import requests
 import json
 import pandas as pd
-from tabulate import tabulate
 
-# Escolha da classe, não deixar vazio #
+def run_code():
 
-print("Qual classe você busca?")
-print("Aqua, Beast, Bird, Bug, Dawn, Musk, Mech, Plant ou Reptile")
-classes_inp = input("Digite a classe: ")
-if (classes_inp == "aqua"):
-    classes_inp = "Aquatic"
-classes = str.capitalize(classes_inp)
+    choose_class()
+    choose_quantity()
+    choose_auction_type()
+    choose_parts()
+    request_query()
 
-# Quantidade máxima de Axies na busca #
+    id = 0
+    id_list = []
+    while id < quantity_choosen:
+        axie_id = (response_json["data"]["axies"]["results"][id]["id"])
+        id_list.append(axie_id)
+        id += 1
 
-print("Quantidade máxima de Axies na busca?")
-print("[1] 5 Axies [2] 10 Axies [3] 20 Axies [4] 40 Axies")
-quantidadedebusca = str(input("Digite 1,2,3 ou 4: "))
-size = "0"
-if (quantidadedebusca == "1"):
-    size = "5"
-elif (quantidadedebusca == "2"):
-    size = "10"
-elif (quantidadedebusca == "3"):
-    size = "20"
-elif (quantidadedebusca == "4"):
-    size = "40"
+    genes_compilator(id_list) 
     
+    calculate_back_probability()
+    calculate_mouth_probability()
+    calculate_horn_probability()
+    calculate_tail_probability()
+    
+    print(back_probability_list)
+    print(mouth_probability_list)
+    print(horn_probability_list)
+    print(tail_probability_list)
 
-# Escolha do estado #
+    ######################## PROBABILITY CALCULATOR ####################################
+    #id = 0
+    #general_probability = []
+    #while id < quantity_choosen:
+    #    product = (back_probability_list[id]/100 * mouth_probability_list[id]/100 * horn_probability_list[id]/100 * tail_probability_list[id]/100)*100
+    #    if product > 100:
+    #        
+    #        general_probability.append(product)
+    #    else:
+    #        general_probability.append(product)
+    #    id += 1
 
-print("Qual o estado do Axie no Marketplace?")
-print("[1] Todos  [2] A venda [3] Não está a venda?")
-auctionType = input("Digite o número correspondente: ")
-
-if (auctionType == 2):
-    auctionType = ("Sale")
-elif (auctionType == 3):
-    auctionType = ("NotForSale")
-else:
-    auctionType = ("All")
-
-# Escolha das partes, se deixar vazio, ele continua funcionando #
-
-print("Qual a parte das costas?")
-costas = input("Digite somente o nome da parte: ")
-part_back = str(("\"back-{}\"").format(costas))
-part_back = part_back.replace(" ", "-")
-
-
-print("Qual a parte da boca?")
-boca = input("Digite somente o nome da parte: ")
-part_mouth = ("\"mouth-{}\"").format(boca)
-part_mouth = part_mouth.replace(" ", "-")
-
-print("Qual a parte do chifre?")
-chifre = input("Digite somente o nome da parte: ")
-part_horn = ("\"horn-{}\"").format(chifre)
-part_horn = part_horn.replace(" ", "-")
-
-print("Qual a parte da calda?")
-cauda = input("Digite somente o nome da parte: ")
-part_tail = ("\"tail-{}\"").format(cauda)
-part_tail = part_tail.replace(" ", "-")
-
-if (part_back == "\"back-\""):
-    part_back = "\"null\""
-if (part_mouth == "\"mouth-\""):
-    part_mouth = "\"null\""
-if (part_horn == "\"horn-\""):
-    part_horn = "\"null\""
-if (part_tail == "\"tail-\""):
-    part_tail = "\"null\""
-
-#auctionType = "Sale"
-str_parts = ("[" + part_back + "," + part_mouth + "," +  part_horn + "," +  part_tail + "]" )
-de = "0"
-sort = "PriceAsc"
-#size = quantidadebusca
-
-# Request para puxar os axies que tem DOMINANTE das cartas escolhidas #
-
-headers = {'content-type': 'application/json'}
-query = """"query":"query GetAxieBriefList(\\n  $auctionType: AuctionType\\n  $criteria: AxieSearchCriteria\\n  $from: Int\\n  $sort: SortBy\\n  $size: Int\\n  $owner: String\\n) {\\n  axies(\\n    auctionType: $auctionType\\n    criteria: $criteria\\n    from: $from\\n    sort: $sort\\n    size: $size\\n    owner: $owner\\n  ) {\\n    results {\\n      id\\n    }\\n  }}"""
-variables = str("\"variables\":{\"auctionType\":" + "\"" + auctionType + "\"" + ",\"criteria\":{\"classes\":" +  "\"" + classes + "\""  + ",\"parts\":" + str_parts + "},\"from\":" + de + ",\"sort\":" + "\"" + sort + "\"" + ",\"size\":"  + size + "}}" )
-data = str("{" + query + "\"" + "," + variables)
-response = requests.post('https://axieinfinity.com/graphql-server-v2/graphql', headers=headers, data=data)
-
-# Pegar os id's e transformar em uma lista #
-
-json_data = json.loads(response.text)
-lista_ids = str(list(json_data.values()))
-
-
-if "id" in lista_ids:
-    lista_ids = lista_ids.replace("{", "")
-    lista_ids = lista_ids.replace("}", "")
-    lista_ids = lista_ids.replace("'results'", "")
-    lista_ids = lista_ids.replace("'axies'", "")
-    lista_ids = lista_ids.replace("'id'", "")
-    lista_ids = lista_ids.replace(":", "")
-    lista_ids = lista_ids.replace("[", "")
-    lista_ids = lista_ids.replace("]", "")
-    lista_ids = lista_ids.replace("'", "")
-    lista_ids = lista_ids.replace(" ", "")
-#    lista_ids = lista_ids.replace(",", "\",\"")
-else:
-    print("O Axie esolhido é único ou não está a venda")
+    dataframe = pd.DataFrame(axie_data).swapaxes("index", "columns")
+    print(dataframe)
 
 
 
-# Puxar os genes D, R1 e R2 da lista de ids #
-lista_ids = lista_ids.split(",")
-url_id = lista_ids
-i = 0
-axie_list = []
-while i < len(url_id):
-    url_genes = ("https://api.axie.technology/getgenes/" + url_id[i])
-    resultado = requests.get(url_genes)
-    dict = json.loads(resultado.text)
-    id_buscarr = (dict['axieId'])
-    mouthd = (dict['mouth']['d']['partId'])
-    mouthr1 = (dict['mouth']['r1']['partId'])
-    mouthr2 = (dict['mouth']['r2']['partId'])
-    backd = (dict['back']['d']['partId'])
-    backr1 = (dict['back']['r1']['partId'])
-    backr2 = (dict['back']['r2']['partId'])
-    hornd = (dict['horn']['d']['partId'])
-    hornr1 = (dict['horn']['r1']['partId'])
-    hornr2 = (dict['horn']['r2']['partId'])
-    taild = (dict['tail']['d']['partId'])
-    tailr1 = (dict['tail']['r1']['partId'])
-    tailr2 = (dict['tail']['r2']['partId'])
-    axie_data = (id_buscarr, mouthd, mouthr1, mouthr2, backd, backr1, backr2, hornd, hornr1, hornr2, taild, tailr1, tailr2)
-    axie_list.append(axie_data)
-    i = i + 1
+def choose_class():
+    global class_choosen
+    classes = ["aquatic", "beast", "bird", "bug", "dawn", "musk", "mech", "plant", "reptile"]
+    class_choosen = ""
+    print("Which class you want?")
+    print("Aquatic, Beast, Bird, Bug, Dawn, Musk, Mech, Plant, Reptile")
+    while class_choosen not in classes:
+        class_choosen = input("Type the class: ").lower().strip() 
+        if class_choosen in classes:
+            break
+        else:
+            print("Invalid choice. Please write a valid class!")
 
+def choose_quantity():
+    global quantity_choosen
+    quantity_choosen = 0
+    print("How much axies are you searching? (máx 50)")
+    print("For 10 axies, please write: 10.")
+    while True and quantity_choosen == 0:
+        try:
+            quantity_choosen = int(input("Type how much: ")) 
+            if quantity_choosen in range (0,50):
+                break
+        except ValueError:
+            print("Invalid choice. Please write a number!")
+ 
+def choose_auction_type():
+    global auction_type_choosen
+    auction_type = ["Sale", "NotForSale", "All"]
+    auction_type_choosen = ""
+    print("Which state in Marketplace?")
+    print("Sale | Not for sale | All")
+    while auction_type_choosen not in auction_type:
+        auction_type_choosen = input("Type the number here: ").title().replace(" ", "")
+        if auction_type_choosen in auction_type:
+            break
+        else:
+            print("Invalid choice. Please write a valid type!")
 
-df = pd.DataFrame(axie_list, columns=['AxieId', 'Mouth D', 'Mouth R1', 'Mouth R2', 'Back D', 'Back R1', 'Back R2', 'Horn D', 'Horn R1', 'Horn R2', 'Tail D', 'Tail R1', 'Tail R2'])
+def choose_parts():
+    global part_back
+    global part_mouth
+    global part_tail
+    global part_horn
 
-df_novo = df.to_dict('index')
+    part = 0
+    parts = []
+    parts_list= json.load(open("parts.json"))
+    for part in parts_list:
+        parts.append(part['partId'])
+    
+    ##### BACK PART #####
 
+    part_back = ""
+    while part_back == "":
+        print("What back part are you looking for? (Null for skipping)")
+        back = input("Type just the part name: ").lower().strip().replace(" ", "-")
+        part_back = ("back-{}").format(back)
+        if part_back in parts:
+            break
+        elif (back == "null"):
+            part_back = "Null"
+        else:
+            part_back = ""
+            print("Class not found. Please write a valid one!")
 
-part_back = part_back.replace("\"", "")
+    ##### MOUTH PART #####
 
+    part_mouth = ""
+    while part_mouth == "":
+        print("What mouth part are you looking for? (Null for skipping)")
+        mouth = input("Type just the part name: ").lower().strip().replace(" ", "-")
+        part_mouth = ("mouth-{}").format(mouth)
+        if part_mouth in parts:
+            break
+        elif (mouth == "null"):
+            part_mouth = "Null"
+        else:
+            part_mouth = ""
+            print("Class not found. Please write a valid one!")
 
-probabilidade_boca = []
-if "mouth" in part_mouth:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_mouth = 37.5
-        if (df_novo[p]["Mouth D"]) == (df_novo[p]["Mouth R1"]):
-                probabilidade_mouth = probabilidade_mouth + 9.375
-                if (df_novo[p]["Mouth D"]) == (df_novo[p]["Mouth R2"]):
-                    probabilidade_mouth = probabilidade_mouth + 3.125
-        probabilidade_boca.append(probabilidade_mouth)
-        p = p + 1
-else:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_mouth = 1
-        probabilidade_boca.append(probabilidade_mouth)
-        p = p + 1
+    ##### HORN PART #####
 
-probabilidade_costas = []
-if "back" in part_back:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_back = 37.5
-        if (df_novo[p]["Back D"]) == (df_novo[p]["Back R1"]):
-                probabilidade_back = probabilidade_back + 9.375
-                if (df_novo[p]["Back D"]) == (df_novo[p]["Back R2"]):
-                    probabilidade_back = probabilidade_back + 3.125
-        probabilidade_costas.append(probabilidade_back)
-        p = p + 1
-else:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_back = 1
-        probabilidade_costas.append(probabilidade_back)
-        p = p + 1
-        
-probabilidade_chifre = []        
-if "horn" in part_horn:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_horn = 37.5
-        if (df_novo[p]["Horn D"]) == (df_novo[p]["Horn R1"]):
-                probabilidade_horn = probabilidade_horn + 9.375
-                if (df_novo[p]["Horn D"]) == (df_novo[p]["Horn R2"]):
-                    probabilidade_horn = probabilidade_horn + 3.125
-        probabilidade_chifre.append(probabilidade_horn)
-        p = p + 1
-else:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_horn = 1
-        probabilidade_chifre.append(probabilidade_horn)
-        p = p + 1
-        
-probabilidade_rabo = []
-if "tail" in part_tail:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_tail = 37.5
-        if (df_novo[p]["Tail D"]) == (df_novo[p]["Tail R1"]):
-                probabilidade_tail = probabilidade_tail + 9.375
-                if (df_novo[p]["Tail D"]) == (df_novo[p]["Tail R2"]):
-                    probabilidade_tail = probabilidade_tail + 3.125
-        probabilidade_rabo.append(probabilidade_tail)
-        p = p + 1
-else:
-    p = 0
-    while p < len(df_novo):
-        probabilidade_tail = 1
-        probabilidade_rabo.append(probabilidade_tail)
-        p = p + 1
+    part_horn = ""
+    while part_horn == "":
+        print("What horn part are you looking for? (Null for skipping)")
+        horn = input("Type just the part name: ").lower().strip().replace(" ", "-")
+        part_horn = ("horn-{}").format(horn)
+        if part_horn in parts:
+            break
+        elif (horn == "null"):
+            part_horn = "Null"
+        else:
+            part_horn = ""
+            print("Class not found. Please write a valid one!")
 
+    #### TAIL PART #####
 
-df["Probabilidade Boca"] = (probabilidade_boca)
-df["Probabilidade Costas"] = (probabilidade_costas)
-df["Probabilidade Chifre"] = (probabilidade_chifre)
-df["Probabilidade Rabo"] = (probabilidade_rabo)
+    part_tail = ""
+    while part_tail == "":
+        print("What tail part are you looking for? (Null for skipping)")
+        tail = input("Type just the part name: ").lower().strip().replace(" ", "-")
+        part_tail = ("tail-{}").format(tail)
+        if part_tail in parts:
+            break
+        elif (tail == "null"):
+            part_tail = "Null"
+        else:
+            part_tail = ""
+            print("Class not found. Please write a valid one!")
 
-probabilidade = []
-p=0
-while p < len(df):
-    if ((df["Probabilidade Boca"][p]) + (df["Probabilidade Costas"][p]) + (df["Probabilidade Chifre"][p]) + (df["Probabilidade Rabo"][p]) >= 54):
-        probabilidade_total = ((df["Probabilidade Boca"][p])*(df["Probabilidade Costas"][p])*(df["Probabilidade Chifre"][p])*(df["Probabilidade Rabo"][p])/100).round(2)
-        probabilidade.append(probabilidade_total)
-        p = p + 1
+def request_query():
+
+    url = "https://axieinfinity.com/graphql-server-v2/graphql"
+
+    query = "{\"query\":\"query GetAxieBriefList($auctionType: AuctionType, $criteria: AxieSearchCriteria, $from: Int, $sort: SortBy, $size: Int, $owner: String) {\\n  axies(auctionType: $auctionType, criteria: $criteria, from: $from, sort: $sort, size: $size, owner: $owner) {\\n    total\\n    results {\\n      ...AxieBrief\\n      __typename\\n    }\\n    __typename\\n  }\\n}\\n\\nfragment AxieBrief on Axie {\\n  id\\n  name\\n  stage\\n  class\\n  breedCount\\n  image\\n  title\\n  battleInfo {\\n    banned\\n    __typename\\n  }\\n  auction {\\n    currentPrice\\n    currentPriceUSD\\n    __typename\\n  }\\n  parts {\\n    id\\n    name\\n    class\\n    type\\n    specialGenes\\n    __typename\\n  }\\n  __typename\\n}\\n\",\"variables\": "
+    variables = json.dumps({
+        "from":0,
+        "size":quantity_choosen,
+        "sort":"PriceAsc",
+        "auctionType":"Sale",
+        "criteria":{
+            "classes":class_choosen.capitalize(),
+            "parts":[part_back,part_mouth,part_horn,part_tail],
+            "stages":4,
+            #"pureness":[1,2,3],
+            #"breedCount":2
+                }
+        })
+    data = (query+variables+"}")
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(url, data=data, headers = headers)
+    global response_json
+    response_json = json.loads(response.text)       
+
+def genes_compilator(id_list):
+    id = 0
+    global axie_data
+    axie_data = {}
+    while id < quantity_choosen:
+        url_genes = ("https://api.axie.technology/getgenes/" + id_list[id])
+        genes_results = json.loads((requests.get(url_genes).text))
+        axie_data[id] = {"id":"", "mouthd": "", "mouthr1": "","mouthr2": "","backd": "","backr1": "","backr2": "","hornd": "","hornr1": "","hornr2": "","taild": "","tailr1": "","tailr2": ""}
+        axie_data[id]["id"] = (genes_results['axieId'])
+        axie_data[id]["mouthd"] = (genes_results['mouth']['d']['partId'])
+        axie_data[id]["mouthr1"] = (genes_results['mouth']['r1']['partId'])
+        axie_data[id]["mouthr2"] = (genes_results['mouth']['r2']['partId'])
+        axie_data[id]["backd"] = (genes_results['back']['d']['partId'])
+        axie_data[id]["backr1"] = (genes_results['back']['r1']['partId'])
+        axie_data[id]["backr2"] = (genes_results['back']['r2']['partId'])
+        axie_data[id]["hornd"] = (genes_results['horn']['d']['partId'])
+        axie_data[id]["hornr1"] = (genes_results['horn']['r1']['partId'])
+        axie_data[id]["hornr2"] = (genes_results['horn']['r2']['partId'])
+        axie_data[id]["taild"] = (genes_results['tail']['d']['partId'])
+        axie_data[id]["tailr1"] = (genes_results['tail']['r1']['partId'])
+        axie_data[id]["tailr2"] = (genes_results['tail']['r2']['partId'])
+        id += 1
+
+def calculate_back_probability():
+    global back_probability_list
+    back_probability_list = []
+    if part_back != "Null":
+        id = 0
+        while id < quantity_choosen:
+            back_probability = 37.5
+            if axie_data[id]["backd"] == axie_data[id]["backr1"]:
+                back_probability += 9.375
+            elif axie_data[id]["backd"] == axie_data[id]["backr2"]:
+                back_probability += 3.125
+            back_probability_list.append(back_probability)
+            id += 1
     else:
-        probabilidade_total = ((df["Probabilidade Boca"][p])*(df["Probabilidade Costas"][p])*(df["Probabilidade Chifre"][p])*(df["Probabilidade Rabo"][p])).round(2)
-        probabilidade.append(probabilidade_total)
-        p = p + 1
+        id = 0
+        while id < quantity_choosen:
+            back_probability = 1
+            back_probability_list.append(back_probability)
+            id += 1
 
+def calculate_mouth_probability():
+    global mouth_probability_list
+    mouth_probability_list = []
+    if part_mouth != "Null":
+        id = 0
+        while id < quantity_choosen:
+            mouth_probability = 37.5
+            if axie_data[id]["mouthd"] == axie_data[id]["mouthr1"]:
+                mouth_probability += 9.375
+            elif axie_data[id]["mouthd"] == axie_data[id]["mouthr2"]:
+                mouth_probability += 3.125
+            mouth_probability_list.append(mouth_probability)
+            id += 1
+    else:
+        id = 0
+        while id < quantity_choosen:
+            mouth_probability = 1
+            mouth_probability_list.append(mouth_probability)
+            id += 1
 
-df.drop('Mouth R1', axis = 1, inplace = True)
-df.drop('Mouth R2', axis = 1, inplace = True)
-df.drop('Back R1', axis = 1, inplace = True)
-df.drop('Back R2', axis = 1, inplace = True)
-df.drop('Horn R1', axis = 1, inplace = True)
-df.drop('Horn R2', axis = 1, inplace = True)
-df.drop('Tail R1', axis = 1, inplace = True)
-df.drop('Tail R2', axis = 1, inplace = True)
-df.drop('Probabilidade Boca', axis = 1, inplace = True)
-df.drop('Probabilidade Costas', axis = 1, inplace = True)
-df.drop('Probabilidade Chifre', axis = 1, inplace = True)
-df.drop('Probabilidade Rabo', axis = 1, inplace = True)
+def calculate_horn_probability():
+    global horn_probability_list
+    horn_probability_list = []
+    if part_horn != "Null":
+        id = 0
+        while id < quantity_choosen:
+            horn_probability = 37.5
+            if axie_data[id]["hornd"] == axie_data[id]["mouthr1"]:
+                horn_probability += 9.375
+            if axie_data[id]["mouthd"] == axie_data[id]["mouthr2"]:
+                horn_probability += 3.125
+            horn_probability_list.append(horn_probability)
+            id += 1
+    else:
+        id = 0
+        while id < quantity_choosen:
+            horn_probability = 1
+            horn_probability_list.append(horn_probability)
+            id += 1
 
+def calculate_tail_probability():
+    global tail_probability_list
+    tail_probability_list = []
+    if part_tail != "Null":
+        id = 0
+        while id < quantity_choosen:
+            tail_probability = 37.5
+            if axie_data[id]["taild"] == axie_data[id]["mouthr1"]:
+                tail_probability += 9.375
+            if axie_data[id]["mouthd"] == axie_data[id]["mouthr2"]:
+                tail_probability += 3.125
+            tail_probability_list.append(tail_probability)
+            id += 1
+    else:
+        id = 0
+        while id < quantity_choosen:
+            tail_probability = 1
+            tail_probability_list.append(tail_probability)
+            id += 1
 
-df["Probabilidade"] = (probabilidade)
-
-print(tabulate(df, headers=['AxieId', 'Mouth D', 'Back D', 'Horn D', 'Tail D', 'Probabilidade']))
-
-
+if(__name__== "__main__"):
+  run_code()
