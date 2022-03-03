@@ -8,7 +8,7 @@ def run_code():
     choose_quantity()
     choose_auction_type()
     choose_parts()
-    request_query()
+    request_query(
 
     id = 0
     id_list = []
