@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Axie Locator App</title>
+
+		<link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="./bs/css/flatly.min.css" />
+		<link rel="stylesheet" href="./styles.css" />
+        <py-env>
+            - requests
+        </py-env>
+		<script defer src="https://pyscript.net/alpha/pyscript.js"></script> 
+	</head>
+	<body>
+		<div class="container" id="wrapper">
+			<div class="row">
+				<div class="col-lg-4 col-lg-offset-4" id="content">
+					<h2>LET'S FIND SOME AXIE?</h2>
+                    <div class="form-group">
+                    	<label for="axie-class">Class:</label>
+                    	<select class="form-control form-control-lg" name="axie-class" id="axie-class">
+							<option value="Aquatic">Aquatic</option>
+							<option value="Beast">Beast</option>
+							<option value="Bird">Bird</option>
+							<option value="Bug">Bug</option>
+							<option value="Dawn">Dawn</option>
+							<option value="Musk">Musk</option>
+							<option value="Mech">Mech</option>
+							<option value="Plant">Plant</option>
+							<option value="Reptile">Reptile</option>
+                    	</select>
+                    </div>
+                    <div class="form-group">
+						<label for="axie-nbr">How much axies:</label>
+						<select class="form-control form-control-lg" name="axie-nbr" id="axie-nbr">
+							<option value=5>5</option>
+							<option value=10>10</option>
+							<option value=15>15</option>
+							<option value=30>30</option>
+                    	</select>
+                    </div>
+                    <div class="form-group">
+						<label for="axie-auction">Auction Type:</label>
+						<select class="form-control form-control-lg" name="axie-auction" id="axie-auction">
+							<option value="All">All</option>
+							<option value="NotForSale">Not for Sale</option>
+							<option value="Sale">On Sale</option>
+                    	</select>
+                    </div>
+					<div class="form-group">
+						<label for="axie-auction">Back:</label>
+						<select class="form-control form-control-lg" name="back-part" id="back-part-list-group"></select>
+					</div>
+					<div class="form-group">
+						<label for="axie-auction">Mouth:</label>
+						<select class="form-control form-control-lg" name="mouth-part" id="mouth-part-list-group"></select>
+					</div>
+					<div class="form-group">
+						<label for="axie-auction">Horn:</label>
+						<select class="form-control form-control-lg" name="horn-part" id="horn-part-list-group"></select>
+					</div>
+					<div class="form-group">
+						<label for="axie-auction">Tail:</label>
+						<select class="form-control form-control-lg" name="tail-part" id="tail-part-list-group"></select>
+					</div>
+					<div>	
+						<button type="button" class="btn btn-primary" id="search-btn">FIND</button>
+						<button type="button" class="btn btn-primary" id="clear-btn">CLEAR</button>
+					</div>
+
+					<table class="table" >
+						<thead>
+						  <tr>
+							<th scope="col">#</th>
+							<th scope="col">Name</th>
+							<th scope="col">Class</th>
+							<th scope="col">Price (USD)</th>
+						  </tr>
+						</thead>
+						<tbody id="axie-list-group">
+						</tbody>
+					  </table>
+				</div>
+			</div>
+
+			<footer>
+				<div class="row pad">
+					<div class="col-lg-12 text-center">
+						Copyright &copy; 2022 <strong>Axie Locator App</strong>
+					</div>
+				</div>
+			</footer>
+		</div>
+		<py-script src="./locator_py.py"></py-script>
+	</body>
+</html>
